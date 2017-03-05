@@ -24,9 +24,7 @@ void setup()
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-//  pinMode(, OUTPUT);
   shooterESC.attach(SHOOTER_PWM);
-//     shooterMotor(200);
 }
 
 /*
@@ -102,14 +100,12 @@ void turn(int speed, int ratio){
 }
 
 void shooterMotor(int speed){
-  analogWrite(SHOOTER_PWM, abs(speed)); // determine speed 
-  //myservo.writeMicroseconds(1000);
+  myservo.writeMicroseconds(1000);
 }
 
 void loop()
 {
-  // shooterMotor(200);
-  shooterESC.writeMicroseconds(1500);
+  // demo
   driveForward(200);
   delay(1000);
   driveForward(0);
@@ -118,6 +114,6 @@ void loop()
   delay(1000);
   driveForward(0);
   delay(1000);
-
 }
+
 
