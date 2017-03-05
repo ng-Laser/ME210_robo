@@ -1,8 +1,10 @@
+#include <Servo.h> // for ESC
+
 // connect motor controller pins to Arduino digital pins
 // in1 , in2 into normal digital output pins
 // enable in digital write
 // motor one
-int enA = 9;
+int enA = 6;
 int in1 = 7;
 int in2 = 8;
 // motor two
@@ -10,7 +12,8 @@ int enB = 11;
 int in3 = 12;
 int in4 = 13;
 
-#define SHOOTER_PWM 6
+#define SHOOTER_PWM 5
+Servo shooterESC;
 
 void setup()
 {
@@ -21,8 +24,9 @@ void setup()
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-  pinMode(SHOOTER_PWM, OUTPUT);
-  speed = 255;
+//  pinMode(, OUTPUT);
+  shooterESC.attach(SHOOTER_PWM);
+//     shooterMotor(200);
 }
 
 /*
@@ -98,11 +102,14 @@ void turn(int speed, int ratio){
 }
 
 void shooterMotor(int speed){
-  analogWrite(enA, abs(speed)); // determine speed 
+  analogWrite(SHOOTER_PWM, abs(speed)); // determine speed 
+  //myservo.writeMicroseconds(1000);
 }
 
 void loop()
 {
+  // shooterMotor(200);
+  shooterESC.writeMicroseconds(1500);
   driveForward(200);
   delay(1000);
   driveForward(0);
@@ -111,5 +118,6 @@ void loop()
   delay(1000);
   driveForward(0);
   delay(1000);
+
 }
 
