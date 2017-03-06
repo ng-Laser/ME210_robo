@@ -1,11 +1,11 @@
 #include <Servo.h> // for ESC
 
 // motor one
-int in1 = 6;
-int in2 = 5; // pin 9, 10 pwm didn't work 
-// motor two
-int in3 = 11;
-int in4 = 12;
+int enMotorA = 5;
+int enMotorB = 6;
+
+int driveAForward = 4 ;// 6;
+int driveBForward = 7 ;// 6;
 
 #define SHOOTER_PWM 9
 Servo shooterESC;
@@ -13,10 +13,10 @@ Servo shooterESC;
 void setup()
 {
   // set all the motor control pins to outputs
-  pinMode(in1, OUTPUT);
-  pinMode(in2, OUTPUT);
-  pinMode(in3, OUTPUT);
-  pinMode(in4, OUTPUT);
+  pinMode(enMotorA, OUTPUT);
+  pinMode(enMotorB, OUTPUT);
+  pinMode(driveAForward, OUTPUT);
+  pinMode(driveBForward, OUTPUT);
   shooterESC.attach(SHOOTER_PWM);
 
   Serial.begin(9600);
@@ -30,22 +30,16 @@ void setup()
 */
 void motorAForward(int speed){
   if(speed == 0){ // stop 
-    digitalWrite(in1, LOW); // turn off motor A  
-    digitalWrite(in2, LOW);  
+    digitalWrite(enMotorA, LOW);       
     return;
   }
   if(speed > 0){ // running forward direction
-    // digitalWrite(in1, HIGH);
-    analogWrite(in1, abs(speed)); // determine speed 
-    digitalWrite(in2, LOW);    
+    digitalWrite(driveAForward, HIGH);    
   }
   else{ // running in reverse
-    Serial.print("in negative!\nwriting ");
-    digitalWrite(in1, LOW);
-    analogWrite(in2, abs(speed)); // determine speed 
-    Serial.println(abs(speed));
+    digitalWrite(driveAForward, LOW);    
   }  
-
+  analogWrite(enMotorA, abs(speed));
 }
 
 /*
@@ -55,21 +49,17 @@ void motorAForward(int speed){
  * when speed < 0 turns in 'reverse direction'
 */
 void motorBForward(int speed){
-  if(speed == 0){
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);  
+  if(speed == 0){ // stop 
+    digitalWrite(enMotorB, LOW);       
     return;
   }
-  if(speed > 0){
-    analogWrite(in3, abs(speed));
-    // digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);    
+  if(speed > 0){ // running forward direction
+    digitalWrite(driveBForward, HIGH);    
   }
-  else{
-    analogWrite(in4, abs(speed));
-    digitalWrite(in3, LOW);
-    //digitalWrite(in4, HIGH); 
-  }
+  else{ // running in reverse
+    digitalWrite(driveBForward, LOW);    
+  }  
+  analogWrite(enMotorB, abs(speed));
 
 }
 
@@ -103,28 +93,44 @@ void shooterMotor(int speed){
   shooterESC.writeMicroseconds(1000);
 }
 
-void loop()
-{
-  // demo
+void driveForwardTest(){
   Serial.println("enter a speed between -255 to 255 for driving");
-  while(!Serial.available()){
-      delay(100);
-  }
-  int speed = Serial.parseInt();
+  int speed = _getUserInputInt();
+  
   Serial.print("Driving ");
   Serial.println(speed);
   driveForward(speed);
   //driveForward(-255);
-  delay(100);
-/*
-  driveForward(200);
-  delay(1000);
-  driveForward(0);
-  delay(1000);
-  driveForward(-200);
-  delay(1000);
-  driveForward(0);
-  delay(1000);*/
+  delay(100);  
+}
+
+void turnTest(){
+  Serial.println("enter a speed between -255 to 255 for turn");
+  int speed = _getUserInputInt();
+
+  Serial.println("enter a ratio between -1 , 1 for turn");
+  while(!Serial.available()){
+      delay(100);
+  }
+  float ratio = Serial.parseFloat();
+  
+  Serial.print("Turn ");  Serial.print(speed);
+  Serial.print(" ");  Serial.println(ratio);
+
+  turn(speed, ratio);
+  delay(100);  
+}
+
+int _getUserInputInt(){
+  while(!Serial.available()){
+      delay(100);
+  }
+  return Serial.parseInt();  
+}
+
+void loop()
+{
+  turnTest();
 }
 
 
