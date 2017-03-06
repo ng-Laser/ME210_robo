@@ -1,30 +1,25 @@
 #include <Servo.h> // for ESC
 
-// connect motor controller pins to Arduino digital pins
-// in1 , in2 into normal digital output pins
-// enable in digital write
 // motor one
-int enA = 6;
-int in1 = 7;
-int in2 = 8;
+int in1 = 6;
+int in2 = 5; // pin 9, 10 pwm didn't work 
 // motor two
-int enB = 11;
-int in3 = 12;
-int in4 = 13;
+int in3 = 11;
+int in4 = 12;
 
-#define SHOOTER_PWM 5
+#define SHOOTER_PWM 9
 Servo shooterESC;
 
 void setup()
 {
   // set all the motor control pins to outputs
-  pinMode(enA, OUTPUT);
-  pinMode(enB, OUTPUT);
   pinMode(in1, OUTPUT);
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
   shooterESC.attach(SHOOTER_PWM);
+
+  Serial.begin(9600);
 }
 
 /*
@@ -40,14 +35,17 @@ void motorAForward(int speed){
     return;
   }
   if(speed > 0){ // running forward direction
-    digitalWrite(in1, HIGH);
+    // digitalWrite(in1, HIGH);
+    analogWrite(in1, abs(speed)); // determine speed 
     digitalWrite(in2, LOW);    
   }
   else{ // running in reverse
+    Serial.print("in negative!\nwriting ");
     digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);    
+    analogWrite(in2, abs(speed)); // determine speed 
+    Serial.println(abs(speed));
   }  
-  analogWrite(enA, abs(speed)); // determine speed 
+
 }
 
 /*
@@ -63,14 +61,16 @@ void motorBForward(int speed){
     return;
   }
   if(speed > 0){
-    digitalWrite(in3, HIGH);
+    analogWrite(in3, abs(speed));
+    // digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);    
   }
   else{
+    analogWrite(in4, abs(speed));
     digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH); 
+    //digitalWrite(in4, HIGH); 
   }
-  analogWrite(enB, abs(speed));
+
 }
 
 /*
@@ -100,12 +100,23 @@ void turn(int speed, int ratio){
 }
 
 void shooterMotor(int speed){
-  myservo.writeMicroseconds(1000);
+  shooterESC.writeMicroseconds(1000);
 }
 
 void loop()
 {
   // demo
+  Serial.println("enter a speed between -255 to 255 for driving");
+  while(!Serial.available()){
+      delay(100);
+  }
+  int speed = Serial.parseInt();
+  Serial.print("Driving ");
+  Serial.println(speed);
+  driveForward(speed);
+  //driveForward(-255);
+  delay(100);
+/*
   driveForward(200);
   delay(1000);
   driveForward(0);
@@ -113,7 +124,7 @@ void loop()
   driveForward(-200);
   delay(1000);
   driveForward(0);
-  delay(1000);
+  delay(1000);*/
 }
 
 
