@@ -1,39 +1,12 @@
-/**
- * HC-SR04 Demo
- * Demonstration of the HC-SR04 Ultrasonic Sensor
- * Date: August 3, 2016
- * 
- * Description:
- *  Connect the ultrasonic sensor to the Arduino as per the
- *  hardware connections below. Run the sketch and open a serial
- *  monitor. The distance read from the sensor will be displayed
- *  in centimeters and inches.
- * 
- * Hardware Connections:
- *  Arduino | HC-SR04 
- *  -------------------
- *    5V    |   VCC     
- *    7     |   Trig     
- *    8     |   Echo     
- *    GND   |   GND
- *  
- * License:
- *  Public Domain
- */
+ #include <Timers.h> // for sonar
 
- #include <Timers.h>
-
-
-
-// Pins
+// Sonar sensor Pins/variables
 const int TRIG_PIN = 3;
 const int ECHO_PIN = 2;
 volatile float previous = 100.0;
 volatile float second_previous = 101.0;
 volatile float running_average = 100;
 volatile float minimum_average = 1000;
-
-
 
 // Anything over 400 cm (23200 us pulse) is "out of range"
 const unsigned int MAX_DIST = 23200;
@@ -43,6 +16,18 @@ void determineMinimum(void);
 void turnToMinimum(void);
 float getDistance(void);
 
+// end sonar sensor stuff 
+
+
+/* Start Drive Motors stuff */
+// motor one
+int in1 = 10 ;// 6;
+int in2 = 5; // pin 9, 10 pwm didn't work 
+// motor two
+int in3 = 11;
+int in4 = 6;// 10;
+
+/* End drive Motors stuff*/
 void setup() {
 
   // The Trigger pin will tell the sensor to range find
@@ -52,61 +37,26 @@ void setup() {
   // We'll use the serial monitor to view the sensor output
   Serial.begin(9600);
   TMRArd_InitTimer(0,5000);
+
+  /* Start drive motor stuff */
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  turn(-70, -1);
+  /* End drive motors stuff */
 }
 
 void loop() {
-  if (TMRArd_IsTimerExpired(0)){
+  if ((unsigned char)TMRArd_IsTimerExpired(0)){
+    // driveForward(0);
+    // Serial.println("timer expired");
+    //delay(1000);
     turnToMinimum();
   } else {
     determineMinimum();
   }
-  
-/*
-  unsigned long t1;
-  unsigned long t2;
-  unsigned long pulse_width;
-  float cm;
-  float inches;
-
-  // Hold the trigger pin high for at least 10 us
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  //Serial.println("here");
-  // Wait for pulse on echo pin
-  while ( digitalRead(ECHO_PIN) == 0 );
-  //Serial.println("here2");
-  // Measure how long the echo pin was held high (pulse width)
-  // Note: the micros() counter will overflow after ~70 min
-  t1 = micros();
-  while ( digitalRead(ECHO_PIN) == 1);
-  t2 = micros();
-  pulse_width = t2 - t1;
-  //Serial.print("here3");
-  // Calculate distance in centimeters and inches. The constants
-  // are found in the datasheet, and calculated from the assumed speed 
-  //of sound in air at sea level (~340 m/s).
-  cm = pulse_width / 58.0;
-  inches = pulse_width / 148.0;
-
-  // Print out results
-  if ( pulse_width > MAX_DIST ) {
-    Serial.println("Out of range");
-  } else {
-    //Serial.print(cm);
-    //Serial.print(" cm \t");
-    running_average = (second_previous+previous+inches)/3;
-    if (running_average < minimum_average) minimum_average = running_average;
-    Serial.print(running_average);
-    Serial.println(" average in");
-    Serial.print(inches);
-    Serial.println(" in");
-    second_previous = previous;
-    previous = inches;    
-  }
-  
-  // Wait at least 60ms before next measurement
-  delay(1000);*/
 }
 
 void determineMinimum(){
@@ -127,7 +77,8 @@ void turnToMinimum(){
   running_average = (second_previous+previous+inches)/3;
   if (running_average < minimum_average + THRESHOLD) {
     //Stop motors
-    Serial.println("Stop");   
+    Serial.println("Stop");
+    driveForward(0);
   }
   Serial.print("average: ");
   Serial.print(running_average);
@@ -156,3 +107,83 @@ float getDistance(){
   return inches; 
 }
 
+
+/* Start Drive motor stuff */
+
+/*
+ * Speed control for motorA
+ * When speed == 0 the motor breaks
+ * when speed > 0 turns in 'forward direction'
+ * when speed < 0 turns in 'reverse direction'
+*/
+void motorAForward(int speed){
+  if(speed == 0){ // stop 
+    digitalWrite(in1, LOW); // turn off motor A  
+    digitalWrite(in2, LOW);  
+    return;
+  }
+  if(speed > 0){ // running forward direction
+    // digitalWrite(in1, HIGH);
+    analogWrite(in1, abs(speed)); // determine speed 
+    digitalWrite(in2, LOW);    
+  }
+  else{ // running in reverse
+    Serial.print("in negative!\nwriting ");
+    digitalWrite(in1, LOW);
+    analogWrite(in2, abs(speed)); // determine speed 
+    Serial.println(abs(speed));
+  }  
+
+}
+
+/*
+ * Speed control for motorB
+ * When speed == 0 the motor breaks
+ * when speed > 0 turns in 'forward direction'
+ * when speed < 0 turns in 'reverse direction'
+*/
+void motorBForward(int speed){
+  if(speed == 0){
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);  
+    return;
+  }
+  if(speed > 0){
+    analogWrite(in3, abs(speed));
+    // digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);    
+  }
+  else{
+    analogWrite(in4, abs(speed));
+    digitalWrite(in3, LOW);
+    //digitalWrite(in4, HIGH); 
+  }
+
+}
+
+/*
+ * This function wraps around the two motor controllers to go straight
+ * When speed == 0 the motor breaks
+ * when speed > 0 both of the motors turn in the 'forward direction'
+ * when speed < 0 both motors turn in the 'reverse direction'
+*/
+void driveForward(int speed){
+  motorAForward(speed);
+  motorBForward(speed);
+}
+
+/*
+ * This function wraps around the two motor controllers, allows for turning
+ * Speed controlls the first motor, ratio allows relative motion 
+ * When speed == 0 the motor breaks
+ * when speed > 0 both of the motors turn in the 'forward direction'
+ * when speed < 0 both motors turn in the 'reverse direction'
+ * 
+ * When ratio < 0 , motors turn in opposite directions
+ * When ration 
+*/
+void turn(int speed, int ratio){
+  motorAForward(speed);
+  motorBForward(speed*ratio);
+}
+/* End Drive motor stuff */
