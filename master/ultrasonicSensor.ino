@@ -1,3 +1,4 @@
+// TODO make sonar a class ! 
 
 //function declarations
 void setupPins(void);
@@ -44,8 +45,6 @@ void setupSonar() {
 
 void setupPins(){
   //Trigger pins
-  pinMode(TRIG_PIN_FRONT, OUTPUT);
-  digitalWrite(TRIG_PIN_FRONT, LOW);
   pinMode(TRIG_PIN_LEFT, OUTPUT);
   digitalWrite(TRIG_PIN_LEFT, LOW);
   pinMode(TRIG_PIN_RIGHT, OUTPUT);
@@ -54,24 +53,6 @@ void setupPins(){
   pinMode(ECHO_PIN_FRONT, INPUT);
   pinMode(ECHO_PIN_LEFT, INPUT);
   pinMode(ECHO_PIN_RIGHT, INPUT);
-}
-
-float getDistance(int TRIG_PIN, int ECHO_PIN){
-  unsigned long t1;
-  unsigned long t2;
-  unsigned long pulse_width;
-  float cm;
-  float inches;
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  while ( digitalRead(ECHO_PIN) == 0 );
-  t1 = micros();
-  while ( digitalRead(ECHO_PIN) == 1);
-  t2 = micros();
-  pulse_width = t2 - t1;
-  inches = pulse_width / 148.0;
-  return inches;
 }
 
 void alignWithFrontWall(){
