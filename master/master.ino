@@ -4,18 +4,10 @@ void setup(){
   setupSonar();
 }
 
-void alignToFirstSpot(){
-  turn(-110, -1);
-  alignWithWall();
-  while(true){
-    delay(100);  
-  }  
-}
 
-void loop(){
- alignToFirstSpot();
-
-  driveForward(0);
+void loop(){  
+  findStartPosition();
+  
   while(true){
     delay(100);  
   }  

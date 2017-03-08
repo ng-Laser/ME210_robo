@@ -3,12 +3,13 @@
 
 #include <Arduino.h>
 
-class HC_SR04 {
+class SonarSensor {
   public:
-    HC_SR04(int triggerPin_in, int echoPin_in);
+    SonarSensor(int triggerPin_in, int echoPin_in);
     void setUp();
-	float HC_SR04::getDistance();
-    
+	float getDistance();
+    float newAvgDistance();
+	
   private:
 	int triggerPin ,echoPin ;
 	float prevVal , secondPrevVal;

@@ -1,20 +1,20 @@
-#include "HC_SR04.h"
+#include "SonarSensor.h"
 
-HC_SR04::HC_SR04(int triggerPin_in, int echoPin_in)
+SonarSensor::SonarSensor(int triggerPin_in, int echoPin_in)
 {
 	triggerPin = triggerPin_in;
 	echoPin = echoPin_in;
 }
 
-void setUp(){
+void SonarSensor::setUp(){
 	pinMode(triggerPin, OUTPUT);
 	digitalWrite(triggerPin, LOW);
 	pinMode(echoPin, INPUT);
-	prevVal = getDistance();
-	secondPrevVal = getDistance();
+	prevVal = this->getDistance();
+	secondPrevVal =prevVal;
 }
 
-float HC_SR04::getDistance(){
+float SonarSensor::getDistance(){
   unsigned long t1;
   unsigned long t2;
   unsigned long pulse_width;
@@ -30,10 +30,13 @@ float HC_SR04::getDistance(){
   pulse_width = t2 - t1;
   inches = pulse_width / 148.0;
   return inches;
- }
 }
 
-float HC_SR04::newAvgDistance(){
-	return (getDistance()+ 	prevVal + secondPrevVal )/3.0;
+float SonarSensor::newAvgDistance(){
+	float currentDistance = getDistance();
+	float avg = (currentDistance + prevVal + secondPrevVal )/3.0;
+	prevVal = currentDistance;
+	secondPrevVal = prevVal;
+	return avg; 
 
 }

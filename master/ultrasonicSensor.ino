@@ -1,23 +1,10 @@
-// TODO make sonar a class ! 
-
-//function declarations
-void setupPins(void);
-float getDistance(int TRIG_PIN, int ECHO_PIN);
-void alignWithSideWalls(void);
-void alignWithRearWall(void);
-void setupSonar(void);
-void alignWithWall(void);
-void findStartPosition(void);
-
+#include "SonarSensor.h"
 
 //pins
 //These values can change as necessary
-const int TRIG_PIN_RIGHT = 2;
-const int ECHO_PIN_RIGHT = 3;
-const int TRIG_PIN_FRONT = 9;
-const int ECHO_PIN_FRONT = 8;
-const int TRIG_PIN_LEFT = 12;
-const int ECHO_PIN_LEFT = 10;
+SonarSensor rightSonar = SonarSensor(2 , 3); // trigger , echo
+SonarSensor frontSonar = SonarSensor(9 , 8); // trigger , echo
+SonarSensor leftSonar = SonarSensor(12 , 10); // trigger , echo
 
 //constants
 const float FRONT_WALL_THRESHOLD = 6.0;       //Need to determine empirically
@@ -26,102 +13,87 @@ const float RIGHT_THRESHOLD = 15.0;           //Need to determine empirically
 const float LEFT_THRESHOLD = 15.0;            //Need to determine empirically
 const unsigned int MAX_DIST = 23200;          //farthest range of ultrasonic sensor
 
-//Helper variables
-volatile float leftAverage = 100.0;
-volatile float leftPrev = 100.0;
-volatile float leftSecond_prev = 100.0;
-volatile float rightAverage = 100.0;
-volatile float rightPrev = 100.0;
-volatile float rightSecond_prev = 100.0;
-volatile float frontAverage = 100.0;
-volatile float frontPrev = 100.0;
-volatile float frontSecond_prev = 100.0;
-
-
 void setupSonar() {
   setupPins();
 }
 
-
 void setupPins(){
-  //Trigger pins
-  pinMode(TRIG_PIN_LEFT, OUTPUT);
-  digitalWrite(TRIG_PIN_LEFT, LOW);
-  pinMode(TRIG_PIN_RIGHT, OUTPUT);
-  digitalWrite(TRIG_PIN_RIGHT, LOW);
-  //Echo pins
-  pinMode(ECHO_PIN_FRONT, INPUT);
-  pinMode(ECHO_PIN_LEFT, INPUT);
-  pinMode(ECHO_PIN_RIGHT, INPUT);
+  rightSonar.setUp(); // trigger , echo
+  frontSonar.setUp(); // trigger , echo
+  leftSonar.setUp(); // trigger , echo
 }
 
-void alignWithFrontWall(){
-  while (frontAverage > FRONT_WALL_THRESHOLD) {
-    float inches = getDistance(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-    frontAverage = (frontSecond_prev + frontPrev + inches)/3;
-    frontSecond_prev = frontPrev;
-    frontPrev = inches;
-  }
-  driveForward(0);
-}
-
-void alignWithSideWalls(){
-  float rightLeftSum = 100;
-  while(rightLeftSum > RIGHT_LEFT_SUM_THRESHOLD) {
-    float leftInches = getDistance(TRIG_PIN_LEFT, ECHO_PIN_LEFT);
-    float rightInches = getDistance(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
-    leftAverage = (leftInches + leftPrev + leftSecond_prev)/3;
-    rightAverage = (rightInches + rightPrev + rightSecond_prev)/3;
-    float rightLeftSum = rightAverage+leftAverage;
+void sonarPrintTest(){
+    float rightAverage = rightSonar.newAvgDistance(); // trigger , echo
+    float frontAverage =  frontSonar.newAvgDistance(); // trigger , echo
+    float leftAverage = leftSonar.newAvgDistance(); // trigger , echo
     
-    rightSecond_prev = rightPrev;
-    leftSecond_prev = leftPrev;
-    rightPrev = rightInches;
-    leftPrev = leftInches;
-  }
-  driveForward(0);
-}
-
-void alignWithWall(){
-  alignWithFrontWall();
-  delay(1000);
-  turn(-105, -1); // Not sure if these values are correct
-  alignWithSideWalls();
-  while(true){
-    delay(100);
-  }
+    Serial.print("right distance: ");
+    Serial.print(rightAverage);
+    Serial.print(" left distance: ");
+    Serial.print(leftAverage);
+    Serial.print(" front distance: ");
+    Serial.println(frontAverage);  
 }
 
 void findStartPosition(){
+  turn(110,-1);
   bool positionFound = false;
   while (positionFound == false) {
-    float rightInches = getDistance(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
-    //Serial.println("got distance1");
-    float leftInches = getDistance(TRIG_PIN_LEFT, ECHO_PIN_LEFT);
-    //Serial.println("got distance2");
-    float frontInches = getDistance(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-    //Serial.println("got distance3");
-    frontAverage = (frontSecond_prev + frontPrev + frontInches)/3;
-    leftAverage = (leftSecond_prev + leftPrev + leftInches)/3;
-    rightAverage = (rightSecond_prev + rightPrev + rightInches)/3;
+    float rightAverage = rightSonar.newAvgDistance(); // trigger , echo
+    float frontAverage = frontSonar.newAvgDistance(); // trigger , echo
+    float leftAverage  = leftSonar.newAvgDistance(); // trigger , echo
+  
     Serial.print("right distance: ");
     Serial.print(rightAverage);
     Serial.print(" left distance: ");
     Serial.print(leftAverage);
     Serial.print(" front distance: ");
     Serial.println(frontAverage);
+
     if ((rightAverage >= RIGHT_THRESHOLD) && (frontAverage < 10) && (leftAverage >= LEFT_THRESHOLD)) {
         positionFound = true;
         driveForward(0);
         Serial.println("Start position found");
     }
-    //update values for next average
-    frontSecond_prev = frontPrev;
-    frontPrev = frontInches;
-    leftSecond_prev = leftPrev;
-    leftPrev = leftInches;
-    rightSecond_prev = rightPrev;
-    rightPrev = rightInches;
+  }
+}
+
+//void rightHandForward(int time);
+
+void rightHandForward(int time){ // in ms 
+  int timeInterval = 50;
+  for(int i = 0 ; i < time*1.0/timeInterval; i++){
+    //Serial.println("loop");
+    float rightInches = rightSonar.getDistance();
+    //Serial.println("rightdistancefound");
+    float frontDistance = frontSonar.getDistance();
+    //Serial.println("frontdistancefound");
+    //Serial.print("front distance: ");
+    //Serial.print(frontDistance);
+    //Serial.print(" right distance: ");
+    //Serial.println(rightInches);
+    if (frontDistance > 5){
+      //Serial.println("here1");
+      if( rightInches > 6 ) {
+        //Serial.println("right > 5");
+        turn(137.5, .9); // 
+      } else if (rightInches < 5) {
+        //Serial.println("right < 3");
+        turn(110, 1.25);  
+      } else {
+        //Serial.println("here2");
+        driveForward(110);
+      }
+    } else {
+      //Serial.println("here3");
+      driveForward(0);
+    }
+    Serial.print("front distance: ");
+    Serial.print(frontDistance);
+    Serial.print(" right distance: ");
+    Serial.println(rightInches);
+    delay(timeInterval);
   }
 }
 
