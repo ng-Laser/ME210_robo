@@ -28,6 +28,20 @@ void alignWithWall(){
   determineMinimum();    
   turnToMinimum();
 }
+
+void rightHandForward(int time){ // in ms 
+  int timeInterval = 50;
+  for(int i = 0 ; i < time*1.0/timeInterval; i++){
+    float inches = getDistance();
+    if( inches > 3 ) 
+      turn(137.5, .9); // 
+    else{
+      turn(110, 1.25);  
+    }
+    Serial.println(inches);
+    delay(timeInterval );
+  }
+}
   
 void determineMinimum(){
   TMRArd_InitTimer(0,5000);
@@ -35,31 +49,40 @@ void determineMinimum(){
     float inches = getDistance();
     running_average = (second_previous+previous+inches)/3;
     if (running_average < minimum_average) minimum_average = running_average;
-    second_previous = previous;
-    previous = inches;
+    
+    // if(inches > previous*.5 && inches < previous*2  ){ // reject bogus values 
+      second_previous = previous;
+      previous = inches;            
+    //}
+    /*
     Serial.print("average: ");
     Serial.print(running_average);
     Serial.print("minimum: ");
-    Serial.print(minimum_average);
+    Serial.print(minimum_average);*/
   }     
 }
 
 void turnToMinimum(){
+  Serial.println(" Time's Up");
   while(true){
     float inches = getDistance();
     running_average = (second_previous+previous+inches)/3;
     if (running_average < minimum_average + THRESHOLD) {
+      Serial.print ("running_average ");  Serial.println (running_average); 
+      Serial.print ("minimum_average  ");  Serial.println (minimum_average ); 
       Serial.println("Stop");
       driveForward(0);   //Stop motors
       break;
-    }
+    } /*
     Serial.print("average: ");
     Serial.print(running_average);
     Serial.print("minimum: ");
     Serial.print(minimum_average);
-       
-    second_previous = previous;
-    previous = inches;      
+       */
+    // if(inches > previous*.5 && inches < previous*2  ){ // reject bogus values 
+      second_previous = previous;
+      previous = inches;            
+    // }
   }
 }
 

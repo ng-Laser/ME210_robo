@@ -1,8 +1,8 @@
 #include <Servo.h> // for ESC
 
 // motor one
-int enMotorA = 5;
-int enMotorB = 6;
+int enmotorLeft = 5;
+int enmotorRight = 6;
 
 int driveAForward = 4 ;// 6;
 int driveBForward = 7 ;// 6;
@@ -13,8 +13,8 @@ Servo shooterESC;
 void setup()
 {
   // set all the motor control pins to outputs
-  pinMode(enMotorA, OUTPUT);
-  pinMode(enMotorB, OUTPUT);
+  pinMode(enmotorLeft, OUTPUT);
+  pinMode(enmotorRight, OUTPUT);
   pinMode(driveAForward, OUTPUT);
   pinMode(driveBForward, OUTPUT);
   shooterESC.attach(SHOOTER_PWM);
@@ -23,14 +23,14 @@ void setup()
 }
 
 /*
- * Speed control for motorA
+ * Speed control for motorLeft
  * When speed == 0 the motor breaks
  * when speed > 0 turns in 'forward direction'
  * when speed < 0 turns in 'reverse direction'
 */
-void motorAForward(int speed){
+void motorLeftForward(int speed){
   if(speed == 0){ // stop 
-    digitalWrite(enMotorA, LOW);       
+    digitalWrite(enmotorLeft, LOW);       
     return;
   }
   if(speed > 0){ // running forward direction
@@ -39,18 +39,18 @@ void motorAForward(int speed){
   else{ // running in reverse
     digitalWrite(driveAForward, LOW);    
   }  
-  analogWrite(enMotorA, abs(speed));
+  analogWrite(enmotorLeft, abs(speed));
 }
 
 /*
- * Speed control for motorB
+ * Speed control for motorRight
  * When speed == 0 the motor breaks
  * when speed > 0 turns in 'forward direction'
  * when speed < 0 turns in 'reverse direction'
 */
-void motorBForward(int speed){
+void motorRightForward(int speed){
   if(speed == 0){ // stop 
-    digitalWrite(enMotorB, LOW);       
+    digitalWrite(enmotorRight, LOW);       
     return;
   }
   if(speed > 0){ // running forward direction
@@ -59,7 +59,7 @@ void motorBForward(int speed){
   else{ // running in reverse
     digitalWrite(driveBForward, LOW);    
   }  
-  analogWrite(enMotorB, abs(speed));
+  analogWrite(enmotorRight, abs(speed));
 
 }
 
@@ -70,8 +70,8 @@ void motorBForward(int speed){
  * when speed < 0 both motors turn in the 'reverse direction'
 */
 void driveForward(int speed){
-  motorAForward(speed);
-  motorBForward(speed);
+  motorLeftForward(speed);
+  motorRightForward(speed);
 }
 
 /*
@@ -82,11 +82,11 @@ void driveForward(int speed){
  * when speed < 0 both motors turn in the 'reverse direction'
  * 
  * When ratio < 0 , motors turn in opposite directions
- * When ration 
+ * When 0 < ration < 1 , right motor turns slower 
 */
-void turn(int speed, int ratio){
-  motorAForward(speed);
-  motorBForward(speed*ratio);
+void turn(int speed, float ratio){
+  motorLeftForward(speed);
+  motorRightForward(speed*ratio);
 }
 
 void shooterMotor(int speed){

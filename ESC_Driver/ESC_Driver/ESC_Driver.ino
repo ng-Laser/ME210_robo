@@ -12,7 +12,7 @@ Servo firstESC, secondESC; //Create as much as Servoobject you want. You can con
 
 void setup() {
 
-  firstESC.attach(5);    // attached to pin 9 I just do this with 1 Servo
+  firstESC.attach(11);    // attached to pin 9 I just do this with 1 Servo
   Serial.begin(9600);    // start serial at 9600 baud - make sure that the console has that setting as well 
 
 }
