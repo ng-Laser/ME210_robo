@@ -8,7 +8,7 @@ Open source - do what you want with this code!
 
 int value = 0; // set values you need to zero
 
-Servo firstESC, secondESC; //Create as much as Servoobject you want. You can controll 2 or more Servos at the same time
+Servo firstESC; //Create as much as Servoobject you want. You can controll 2 or more Servos at the same time
 
 void setup() {
 
@@ -21,8 +21,15 @@ void loop() {
 
 //First connect your ESC WITHOUT Arming. Then Open Serial and follo Instructions
  
-  firstESC.writeMicroseconds(value);
- 
+  firstESC.writeMicroseconds(0);
+  delay(400);
+
+  firstESC.writeMicroseconds(1000);
+  delay(400);
+  firstESC.writeMicroseconds(1300);
+
+  Serial.println("done");
+  while(true){delay(100);}
   if(Serial.available()) 
     value = Serial.parseInt();    // Parse an Integer from Serial
     //Serial.print(value);

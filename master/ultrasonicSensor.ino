@@ -9,9 +9,9 @@ SonarSensor leftSonar = SonarSensor(12 , 10); // trigger , echo
 //constants
 const float FRONT_WALL_THRESHOLD = 6.0;       //Need to determine empirically
 const float RIGHT_LEFT_SUM_THRESHOLD = 30.0;  //Need to determine empirically
-const float RIGHT_THRESHOLD = 15.0;           //Need to determine empirically
-const float LEFT_THRESHOLD = 15.0;            //Need to determine empirically
+const float FAR_THRESHOLD = 15.0;           //Need to determine empirically
 const unsigned int MAX_DIST = 23200;          //farthest range of ultrasonic sensor
+const float TURNING_THRESHOLD = 4.7;
 
 void setupSonar() {
   setupPins();
@@ -26,8 +26,7 @@ void setupPins(){
 void sonarPrintTest(){
     float rightAverage = rightSonar.newAvgDistance(); // trigger , echo
     float frontAverage =  frontSonar.newAvgDistance(); // trigger , echo
-    float leftAverage = leftSonar.newAvgDistance(); // trigger , echo
-    
+    float leftAverage = leftSonar.newAvgDistance(); // trigger , echo    
     Serial.print("right distance: ");
     Serial.print(rightAverage);
     Serial.print(" left distance: ");
@@ -36,64 +35,121 @@ void sonarPrintTest(){
     Serial.println(frontAverage);  
 }
 
-void findStartPosition(){
-  turn(110,-1);
-  bool positionFound = false;
-  while (positionFound == false) {
-    float rightAverage = rightSonar.newAvgDistance(); // trigger , echo
-    float frontAverage = frontSonar.newAvgDistance(); // trigger , echo
-    float leftAverage  = leftSonar.newAvgDistance(); // trigger , echo
-  
-    Serial.print("right distance: ");
-    Serial.print(rightAverage);
-    Serial.print(" left distance: ");
-    Serial.print(leftAverage);
-    Serial.print(" front distance: ");
-    Serial.println(frontAverage);
-
-    if ((rightAverage >= RIGHT_THRESHOLD) && (frontAverage < 10) && (leftAverage >= LEFT_THRESHOLD)) {
-        positionFound = true;
-        driveForward(0);
-        Serial.println("Start position found");
-    }
-  }
-}
-
-//void rightHandForward(int time);
-
-void rightHandForward(int time){ // in ms 
+void rightHandForward(int time, float threshold, bool breakForFrontWall ){ // in ms 
   int timeInterval = 50;
-  for(int i = 0 ; i < time*1.0/timeInterval; i++){
-    //Serial.println("loop");
-    float rightInches = rightSonar.getDistance();
-    //Serial.println("rightdistancefound");
-    float frontDistance = frontSonar.getDistance();
-    //Serial.println("frontdistancefound");
-    //Serial.print("front distance: ");
-    //Serial.print(frontDistance);
-    //Serial.print(" right distance: ");
-    //Serial.println(rightInches);
-    if (frontDistance > 5){
-      //Serial.println("here1");
-      if( rightInches > 6 ) {
-        //Serial.println("right > 5");
-        turn(137.5, .9); // 
-      } else if (rightInches < 5) {
-        //Serial.println("right < 3");
-        turn(110, 1.25);  
-      } else {
-        //Serial.println("here2");
-        driveForward(110);
-      }
-    } else {
-      //Serial.println("here3");
-      driveForward(0);
-    }
+
+  float rightInches = rightSonar.newAvgDistance();
+  float frontDistance = frontSonar.newAvgDistance();
     Serial.print("front distance: ");
     Serial.print(frontDistance);
     Serial.print(" right distance: ");
     Serial.println(rightInches);
+
+  
+  for(int i = 0 ; i < time*1.0/timeInterval; i++){
+    //Serial.println("loop");
+    float rightInches = rightSonar.newAvgDistance();
+    float frontDistance = frontSonar.newAvgDistance();
+    Serial.print("front distance: ");
+    Serial.print(frontDistance);
+    Serial.print(" right distance: ");
+    Serial.println(rightInches);
+    if(breakForFrontWall && frontDistance < 5) break;
+    
+    if( rightInches > threshold ) {
+      turn(125, .9); // 
+    } else if (rightInches < threshold *.8) {
+      turn(110, 1.25);  
+    } else {
+      driveForward(110);
+    }    
     delay(timeInterval);
   }
 }
+
+void rightHandForwardWall(float threshold){ // in ms 
+  int timeInterval = 50;
+
+  float rightInches = rightSonar.newAvgDistance();
+  float frontDistance = frontSonar.newAvgDistance();
+    Serial.print("front distance: ");
+    Serial.print(frontDistance);
+    Serial.print(" right distance: ");
+    Serial.println(rightInches);
+
+  
+    while(frontDistance > threshold){
+      //Serial.println("loop");
+      rightInches = rightSonar.newAvgDistance();
+      frontDistance = frontSonar.newAvgDistance();
+      Serial.print("move right wall front distance: ");
+      Serial.print(frontDistance);
+      Serial.print(" right distance: ");
+      Serial.println(rightInches);
+      
+      if( rightInches > threshold ) {
+        turn(125, .9); // 
+      } else if (rightInches < threshold *.8) {
+        turn(110, 1.25);  
+      } else {
+        driveForward(110);
+      }    
+      delay(timeInterval);
+    }
+}
+
+void squishUpAgainstWall(){  
+  for(int i = 0 ; i < 30 ; ++i){
+    turn(150, .95);
+    
+    frontSonar.newAvgDistance(); 
+    frontSonar.newAvgDistance();
+    delay(800);
+    
+    if(frontSonar.newAvgDistance() < 12){
+      turn(-180, -.5);    
+      delay(100);
+    }
+  }
+}
+
+void turnUntilWallToRight(){
+  turn(127,-1);
+  float rightAverage , frontAverage , leftAverage;
+  do {
+    rightAverage = rightSonar.newAvgDistance(); // trigger , echo
+    frontAverage = frontSonar.newAvgDistance(); // trigger , echo
+    leftAverage  = leftSonar.newAvgDistance(); // trigger , echo    
+    Serial.print("right distance: ");  Serial.println(rightAverage);
+    Serial.print(" left distance: ");  Serial.println(leftAverage);
+    Serial.print(" front distance: "); Serial.println(frontAverage);  
+  } while (!((frontAverage >= 12) && (rightAverage < 10) && (leftAverage >= FAR_THRESHOLD)));
+  
+  driveForward(0);
+  Serial.println("Start position found");
+}
+
+
+void ninetyDegreeTurn(){
+  turn(-130,-.8);
+  delay(700);
+  turn(-110,-1);
+  float rightAverage = rightSonar.newAvgDistance();
+  float frontAverage = frontSonar.newAvgDistance();
+  Serial.print("initial right Average: ");
+  Serial.println(rightAverage);
+  Serial.print("initial front Average: ");
+  Serial.println(frontAverage);
+  while((rightAverage > 4.7) || (frontAverage < 15)) {
+    rightAverage = rightSonar.newAvgDistance();
+    frontAverage = frontSonar.newAvgDistance();
+    Serial.print("right Average INSIDE TURN: ");
+    Serial.println(rightAverage);
+    Serial.print("front Average INSIDE TURN: ");
+    Serial.println(frontAverage);
+  }
+  Serial.print("out of while loop");
+  driveForward(0);
+}
+
 

@@ -3,7 +3,8 @@
 Servo firstESC; 
 
 void setupESC() {
-  firstESC.attach(11); 
+  firstESC.attach(6); 
+  firstESC.writeMicroseconds(0);
 }
 void test_ESC() { 
   while(!Serial.available()){
