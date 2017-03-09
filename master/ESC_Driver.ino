@@ -3,10 +3,12 @@
 Servo firstESC; 
 
 void setupESC() {
-  firstESC.attach(6); 
-  firstESC.writeMicroseconds(0);
+  firstESC.attach(11); 
+//  firstESC.writeMicroseconds(0);
+    firstESC.writeMicroseconds(0);
 }
 void test_ESC() { 
+  Serial.print("give speed for esc");
   while(!Serial.available()){
     delay(100); 
   }
