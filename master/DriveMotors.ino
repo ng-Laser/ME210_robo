@@ -1,6 +1,6 @@
 // motor one
-int enmotorLeft = 5;
-int enmotorRight = 11;
+int enmotorLeft = 11;
+int enmotorRight = 10;
 
 int driveAForward = 4 ;// 6;
 int driveBForward = 7 ;// 6;

@@ -4,7 +4,7 @@
 //These values can change as necessary
 SonarSensor rightSonar = SonarSensor(2 , 3); // trigger , echo
 SonarSensor frontSonar = SonarSensor(9 , 8); // trigger , echo
-SonarSensor leftSonar = SonarSensor(12 , 10); // trigger , echo
+SonarSensor leftSonar = SonarSensor(12 , 13); // trigger , echo
 
 //constants
 const float FRONT_WALL_THRESHOLD = 6.0;       //Need to determine empirically
@@ -78,7 +78,7 @@ void rightHandForwardWall(float threshold){ // in ms
     Serial.println(rightInches);
 
   
-    while(frontDistance > threshold){
+    while(frontDistance > threshold && frontDistance < 500){
       //Serial.println("loop");
       rightInches = rightSonar.newAvgDistance();
       frontDistance = frontSonar.newAvgDistance();
@@ -100,7 +100,7 @@ void rightHandForwardWall(float threshold){ // in ms
 
 void squishUpAgainstWall(){  
   for(int i = 0 ; i < 30 ; ++i){
-    turn(150, .95);
+    turn(150, .85);
     
     frontSonar.newAvgDistance(); 
     frontSonar.newAvgDistance();
@@ -126,13 +126,18 @@ void turnUntilWallToRight(){
   } while (!((frontAverage >= 12) && (rightAverage < 10) && (leftAverage >= FAR_THRESHOLD)));
   
   driveForward(0);
+  if(frontAverage > 13){
+    turn(-127,-1);
+    delay(150);
+    driveForward(0);
+  }
   Serial.println("Start position found");
 }
 
 
 void ninetyDegreeTurn(){
   turn(-130,-.8);
-  delay(700);
+  delay(1000);
   turn(-110,-1);
   float rightAverage = rightSonar.newAvgDistance();
   float frontAverage = frontSonar.newAvgDistance();
@@ -140,7 +145,7 @@ void ninetyDegreeTurn(){
   Serial.println(rightAverage);
   Serial.print("initial front Average: ");
   Serial.println(frontAverage);
-  while((rightAverage > 4.7) || (frontAverage < 15)) {
+  while((rightAverage > 4.7)){// || (frontAverage < 15)) {
     rightAverage = rightSonar.newAvgDistance();
     frontAverage = frontSonar.newAvgDistance();
     Serial.print("right Average INSIDE TURN: ");

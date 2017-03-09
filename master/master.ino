@@ -1,33 +1,35 @@
 void setup(){
-    Serial.print("in setup");
   Serial.begin(9600);
+  Serial.print("in setup");
   setupDriveMotors();
   setupSonar();
-  setupESC();
-
-  pinMode(5, OUTPUT);
+  //setupESC();
 }
 
 
 void loop(){
 //  sonarPrintTest();
-//driveForward(255);
+//driveForward(130);
+//turn(110, 1.25); 
+//turnTest();
+//squishUpAgainstWall();
 //delay(100);
 // turnTest();
-//   driveForwardTest();
+//sonarPrintTest();
+// driveForwardTest();
   goToFiringPosition(); 
-  while(true){
-    delay(100);  
-  } 
+//  while(true){
+//    delay(100);  
+//  } 
 }
 
 void goToFiringPosition(){
   Serial.print("in gotofiringpos");
   // turnTest();
   turnUntilWallToRight();
-  rightHandForwardWall(5);
+  rightHandForwardWall(3);
   ninetyDegreeTurn();
-  squishUpAgainstWall();
+//  squishUpAgainstWall();
   driveForward(0);
   /*
   turn(-110, -1);
